@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func helloController(w http.ResponseWriter, r *http.Request) {
+func createProject(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("welcome"))
 }
 
@@ -15,6 +15,6 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Get("/", helloController)
+	r.Get("/", createProject)
 	http.ListenAndServe(":3000", r)
 }
