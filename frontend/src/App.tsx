@@ -5,30 +5,13 @@ import {
   NavigationMenuItem,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { LoginForm } from "./components/ui/custom/Login";
 
 function App() {
   return (
     <>
-      <div>
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              Home
-            </NavigationMenuItem>
-
-             <NavigationMenuItem>
-              Projects
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              Sign in
-            </NavigationMenuItem>
-
-
-
-          </NavigationMenuList>
-        </NavigationMenu>
-        <Button>Click me</Button>
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <LoginForm />
       </div>
     </>
   );
