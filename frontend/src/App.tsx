@@ -1,18 +1,17 @@
 import "./App.css";
-import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { LoginForm } from "./components/ui/custom/Login";
+// import { LoginForm } from "./components/ui/custom/Login";
+
+import { Page } from "./components/ui/custom/Page";
+import { AddProject } from "./components/ui/custom/Project";
 
 function App() {
   return (
     <>
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <LoginForm />
-      </div>
+      <Page>
+        {/* <LoginForm /> */}
+
+        <AddProject />
+      </Page>
     </>
   );
 }

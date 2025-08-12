@@ -39,19 +39,11 @@ func createProject(w http.ResponseWriter, r *http.Request) {
 
 func getProject(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-
 }
 
 func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-
-	// var project Project
-	// err = db.Select(&project, "SELECT * FROM place ORDER BY telcode ASC")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
 
 	r.Get("/", getProject)
 	r.Post("/", createProject)
