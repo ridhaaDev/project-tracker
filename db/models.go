@@ -23,6 +23,12 @@ type Project struct {
 	EndDate     pgtype.Timestamptz `json:"end_date"`
 }
 
+type Role struct {
+	ID          int32  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type Sprint struct {
 	ID          int32              `json:"id"`
 	ProjectID   pgtype.Int4        `json:"project_id"`
@@ -40,9 +46,28 @@ type SprintLane struct {
 type Ticket struct {
 	ID          int32              `json:"id"`
 	SprintID    pgtype.Int4        `json:"sprint_id"`
+	ProjectID   pgtype.Int4        `json:"project_id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Status      pgtype.Int4        `json:"status"`
 	StartDate   pgtype.Timestamptz `json:"start_date"`
 	EndDate     pgtype.Timestamptz `json:"end_date"`
+}
+
+type User struct {
+	ID            int32              `json:"id"`
+	Email         string             `json:"email"`
+	Password      pgtype.Text        `json:"password"`
+	FirstName     pgtype.Text        `json:"first_name"`
+	LastName      pgtype.Text        `json:"last_name"`
+	ContactNumber string             `json:"contact_number"`
+	IsActive      bool               `json:"is_active"`
+	StartDate     pgtype.Timestamptz `json:"start_date"`
+	EndDate       pgtype.Timestamptz `json:"end_date"`
+}
+
+type UserRole struct {
+	ID     int32       `json:"id"`
+	UserID pgtype.Int4 `json:"user_id"`
+	RoleID pgtype.Int4 `json:"role_id"`
 }

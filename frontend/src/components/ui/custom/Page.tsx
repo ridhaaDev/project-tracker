@@ -9,3 +9,9 @@ export const Page = ({ children }: PageProps) => {
         {children}
     </div>
 }
+
+export const FullPage = ({ children }: PageProps) => {
+    return <div className="flex w-full items-center justify-center p-6 md:p-10">
+        {children}
+    </div>
+}

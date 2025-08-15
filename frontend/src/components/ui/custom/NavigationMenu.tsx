@@ -43,19 +43,10 @@ export const NavigationMenuComponent = () => {
                       <NavigationMenuLink asChild>
                         <Link
                           to={{
-                            pathname: "/docs",
+                            pathname: "/view/projects",
                           }}
                         >
-                          Documentation
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to={{
-                            pathname: "/docs",
-                          }}
-                        >
-                          Blocks
+                          View projects
                         </Link>
                       </NavigationMenuLink>
                     </li>
@@ -71,34 +62,50 @@ export const NavigationMenuComponent = () => {
         <NavigationMenuList>
           {location.pathname == "/login" ? (
             <>
-             <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Button>
-                  <Link
-                    to={{
-                      pathname: "/",
-                    }}
-                  >
-                    Home
-                  </Link>
-                </Button>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Button>
+                    <Link
+                      to={{
+                        pathname: "/",
+                      }}
+                    >
+                      Home
+                    </Link>
+                  </Button>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
             </>
           ) : (
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Button>
-                  <Link
-                    to={{
-                      pathname: "/login",
-                    }}
-                  >
-                    Login
-                  </Link>
-                </Button>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Button variant={"outline"}>
+                    <Link
+                      to={{
+                        pathname: "/sign-up",
+                      }}
+                    >
+                      Sign Up
+                    </Link>
+                  </Button>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Button>
+                    <Link
+                      to={{
+                        pathname: "/login",
+                      }}
+                    >
+                      Login
+                    </Link>
+                  </Button>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
           )}
         </NavigationMenuList>
       </NavigationMenu>

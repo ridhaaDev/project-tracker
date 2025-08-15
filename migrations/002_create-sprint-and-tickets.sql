@@ -23,10 +23,11 @@ create table sprint_lanes (
 
 create table tickets (
     id serial PRIMARY KEY,
-    sprint_id int REFERENCES sprints(id),
+    sprint_id int REFERENCES sprints(id) ON DELETE CASCADE,
+    project_id int REFERENCES projects(id) ON DELETE CASCADE,
     name varchar(100) NOT NULL,
     description varchar(500) NOT NULL,
-    status int REFERENCES lanes(id),
+    status int REFERENCES lanes(id) ON DELETE CASCADE,
     start_date timestamptz,
     end_date timestamptz
 );

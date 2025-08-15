@@ -25,23 +25,57 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "../textarea";
 import { Page } from "./Page";
 import { NavigationMenuComponent } from "./NavigationMenu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 
 const FormSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  name: z.string().min(2, {
+    message: "Project name must be at least 2 characters.",
   }),
+  description: z.string(),
 });
 
 export const AddProject = () => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      username: "",
+      name: "",
+      description: "",
+    },
+  });
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const addProjectMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof FormSchema>) => {
+      const response = await fetch(
+        "http://localhost:3000/api/v1/projects/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to add project");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success("Project added successfully!");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      navigate("/view/projects");
+    },
+    onError: (error: { message?: string }) => {
+      toast.error(error.message || "Failed to add project");
     },
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+    addProjectMutation.mutate(data);
+
     toast("You submitted the following values", {
       description: (
         <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
@@ -71,7 +105,7 @@ export const AddProject = () => {
                 >
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Project Name</FormLabel>
@@ -82,19 +116,30 @@ export const AddProject = () => {
                             className="lg:w-66 md:w-max"
                           />
                         </FormControl>
-
-                        <FormLabel className="mt-6">
-                          Project Description
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Enter your project description" />
-                        </FormControl>
-
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit">Submit</Button>
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Something to describe your project"
+                            {...field}
+                            className="lg:w-66 md:w-max"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button type="submit">Start Project</Button>
                 </form>
               </Form>
             </CardContent>

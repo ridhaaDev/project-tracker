@@ -27,8 +27,8 @@ func (q *Queries) CreateLane(ctx context.Context, arg CreateLaneParams) (pgconn.
 }
 
 const createSprint = `-- name: CreateSprint :execresult
-INSERT INTO sprints (project_id, name, description, start_date, end_date) 
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO sprints (project_id, name, description, start_date) 
+VALUES ($1, $2, $3, $4)
 `
 
 type CreateSprintParams struct {
@@ -36,7 +36,6 @@ type CreateSprintParams struct {
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	StartDate   pgtype.Timestamptz `json:"start_date"`
-	EndDate     pgtype.Timestamptz `json:"end_date"`
 }
 
 func (q *Queries) CreateSprint(ctx context.Context, arg CreateSprintParams) (pgconn.CommandTag, error) {
@@ -45,37 +44,74 @@ func (q *Queries) CreateSprint(ctx context.Context, arg CreateSprintParams) (pgc
 		arg.Name,
 		arg.Description,
 		arg.StartDate,
-		arg.EndDate,
 	)
 }
 
 const createTicket = `-- name: CreateTicket :execresult
-INSERT INTO tickets (
+INSERT INTO tickets 
+(
     sprint_id,
+    project_id,
     name,
     description,
     status,
-    start_date,
-    end_date
-) values ($1, $2, $3, $4, $5, $6)
+    start_date
+) 
+VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateTicketParams struct {
 	SprintID    pgtype.Int4        `json:"sprint_id"`
+	ProjectID   pgtype.Int4        `json:"project_id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
 	Status      pgtype.Int4        `json:"status"`
 	StartDate   pgtype.Timestamptz `json:"start_date"`
-	EndDate     pgtype.Timestamptz `json:"end_date"`
 }
 
 func (q *Queries) CreateTicket(ctx context.Context, arg CreateTicketParams) (pgconn.CommandTag, error) {
 	return q.db.Exec(ctx, createTicket,
 		arg.SprintID,
+		arg.ProjectID,
 		arg.Name,
 		arg.Description,
 		arg.Status,
 		arg.StartDate,
-		arg.EndDate,
 	)
+}
+
+const getTicketsByProjectID = `-- name: GetTicketsByProjectID :many
+SELECT id, name, description, start_date FROM tickets WHERE project_id = $1
+`
+
+type GetTicketsByProjectIDRow struct {
+	ID          int32              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	StartDate   pgtype.Timestamptz `json:"start_date"`
+}
+
+func (q *Queries) GetTicketsByProjectID(ctx context.Context, projectID pgtype.Int4) ([]GetTicketsByProjectIDRow, error) {
+	rows, err := q.db.Query(ctx, getTicketsByProjectID, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTicketsByProjectIDRow
+	for rows.Next() {
+		var i GetTicketsByProjectIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.StartDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

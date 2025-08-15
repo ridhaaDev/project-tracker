@@ -27,3 +27,62 @@ type CreateProjectParams struct {
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (pgconn.CommandTag, error) {
 	return q.db.Exec(ctx, createProject, arg.Name, arg.Description, arg.StartDate)
 }
+
+const getProjectByID = `-- name: GetProjectByID :one
+SELECT id, name, description, start_date FROM projects WHERE id = $1
+`
+
+type GetProjectByIDRow struct {
+	ID          int32              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	StartDate   pgtype.Timestamptz `json:"start_date"`
+}
+
+func (q *Queries) GetProjectByID(ctx context.Context, id int32) (GetProjectByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProjectByID, id)
+	var i GetProjectByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.StartDate,
+	)
+	return i, err
+}
+
+const getProjects = `-- name: GetProjects :many
+SELECT id, name, description, start_date FROM projects
+`
+
+type GetProjectsRow struct {
+	ID          int32              `json:"id"`
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	StartDate   pgtype.Timestamptz `json:"start_date"`
+}
+
+func (q *Queries) GetProjects(ctx context.Context) ([]GetProjectsRow, error) {
+	rows, err := q.db.Query(ctx, getProjects)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProjectsRow
+	for rows.Next() {
+		var i GetProjectsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.StartDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
