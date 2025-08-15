@@ -5,7 +5,7 @@ type PageProps = {
 };
 
 export const Page = ({ children }: PageProps) => {
-    return <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    return <div className="flex min-h-[80vh] w-full items-center justify-center p-6 md:p-10">
         {children}
     </div>
 }

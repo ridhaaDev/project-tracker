@@ -9,12 +9,17 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Page } from "./Page"
+import { NavigationMenuComponent } from "./NavigationMenu"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   return (
+    <>
+    <NavigationMenuComponent />
+    <Page>
     <div className={cn("flex flex-col gap-6 min-w-[400px]", className)} {...props}>
       <Card>
         <CardHeader>
@@ -66,5 +71,7 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
+    </Page>
+    </>
   )
 }
