@@ -7,7 +7,7 @@ create table users (
     last_name varchar(500),
     contact_number varchar(15) NOT NULL,
     is_active boolean NOT NULL,
-    start_date timestamptz,
+    start_date timestamptz DEFAULT now(),
     end_date timestamptz
 );
 
