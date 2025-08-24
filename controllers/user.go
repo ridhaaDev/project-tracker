@@ -4,78 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
 	"project-tracker/api/db"
+	"project-tracker/api/utils"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
-
-func SignToken(userId int32) (string, error) {
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId": userId,
-		"ttl":    time.Now().Add(time.Hour * 24 * 100).Unix(),
-	})
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-	if err != nil {
-		return "Unauthorized", err
-	}
-
-	return tokenString, nil
-}
-
-func VerifyToken(tokenString string) (int32, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(os.Getenv("JWT_SECRET")), nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse token: %v", err)
-	}
-
-	if !token.Valid {
-		return 0, fmt.Errorf("invalid token")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, fmt.Errorf("invalid token claims")
-	}
-
-	exp, ok := claims["ttl"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("invalid expiration claim")
-	}
-
-	if int64(exp) < time.Now().Unix() {
-		return 0, fmt.Errorf("token expired")
-	}
-
-	userIdInt, ok := claims["userId"].(float64)
-	if !ok {
-		return 0, fmt.Errorf("userId claim is not a float64")
-	}
-
-	return int32(userIdInt), nil
-}
-
-func setCookie(w http.ResponseWriter, tokenString string) {
-	cookie := http.Cookie{
-		Name:    "Auth",
-		Value:   tokenString,
-		Path:    "/",
-		Expires: time.Now().Add(24 * time.Hour * 100),
-	}
-	http.SetCookie(w, &cookie)
-
-}
 
 // HashPassword generates a bcrypt hash for the given password.
 func HashPassword(password string) (string, error) {
@@ -147,12 +84,12 @@ func SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := SignToken(entity)
+	token, err := utils.SignToken(entity)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	setCookie(w, token)
+	utils.SetCookie(w, token)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
@@ -165,14 +102,14 @@ type LoginUserType struct {
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	var user LoginUserType
 
 	conn, ctx := db.ConnectDB()
 	defer conn.Close(ctx)
 
 	queries := db.New(conn)
 
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	user, err := utils.ParseBody[LoginUserType](r)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -184,7 +121,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, err := VerifyToken(authCookie.Value)
+	// Initial check to verify the token
+	userId, err := utils.VerifyToken(authCookie.Value)
 	if err != nil {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
@@ -192,18 +130,19 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	// If cookie is expired, create a new one
 	if time.Now().UTC().After(authCookie.Expires.UTC()) {
-		token, err := SignToken(userId)
+		token, err := utils.SignToken(userId)
 		if err != nil {
-			http.Error(w, "BLAH", http.StatusInternalServerError)
+			http.Error(w, "Failed to sign token", http.StatusInternalServerError)
 			return
 		}
-		setCookie(w, token)
-	}
+		utils.SetCookie(w, token)
 
-	userId, err = VerifyToken(authCookie.Value)
-	if err != nil {
-		http.Error(w, "Invalid token again", http.StatusUnauthorized)
-		return
+		// Verify the new token
+		userId, err = utils.VerifyToken(token)
+		if err != nil {
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	hashedPassword, err := queries.GetHashedPassword(ctx, userId)
@@ -218,6 +157,6 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
 }

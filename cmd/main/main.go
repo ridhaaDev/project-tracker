@@ -17,6 +17,11 @@ func getEndpointName(prefix string, endpointName string) string {
 	return prefix + endpointName
 }
 
+func makeEndpoint(endpoint string) string {
+	prefix := "/api/" + os.Getenv("API_VERSION")
+	return getEndpointName(prefix, endpoint)
+}
+
 func main() {
 
 	corsMiddleware := cors.New(cors.Options{
@@ -38,16 +43,14 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	apiPrefix := "/api/" + os.Getenv("API_VERSION")
+	r.Post(makeEndpoint("/user/signup"), controllers.SignupUser)
+	r.Post(makeEndpoint("/user/login"), controllers.LoginUser)
 
-	r.Post(getEndpointName(apiPrefix, "/user/signup"), controllers.SignupUser)
-	r.Post(getEndpointName(apiPrefix, "/user/login"), controllers.LoginUser)
-
-	r.Post(getEndpointName(apiPrefix, "/projects/create"), controllers.CreateProject)
-	r.Get(getEndpointName(apiPrefix, "/projects"), controllers.GetProjects)
-	r.Get(getEndpointName(apiPrefix, "/projects/{id}"), controllers.GetProjectByID)
-	r.Get(getEndpointName(apiPrefix, "/projects/{id}/tickets"), controllers.GetProjectTickets)
-	r.Post(getEndpointName(apiPrefix, "/projects/{id}/tickets/create"), controllers.CreateTicket)
+	r.Post(makeEndpoint("/projects/create"), controllers.CreateProject)
+	r.Get(makeEndpoint("/projects"), controllers.GetProjects)
+	r.Get(makeEndpoint("/projects/{id}"), controllers.GetProjectByID)
+	r.Get(makeEndpoint("/projects/{id}/tickets"), controllers.GetProjectTickets)
+	r.Post(makeEndpoint("/projects/{id}/tickets/create"), controllers.CreateTicket)
 
 	http.ListenAndServe(":3000", r)
 }
